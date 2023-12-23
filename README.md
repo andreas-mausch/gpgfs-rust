@@ -12,19 +12,25 @@ cargo build [--release]
 
 ```bash
 cargo run ./test-mount/
-````
+```
 
 ## Format
 
 ```bash
 cargo fmt
-````
+```
+
+## Check
+
+```bash
+cargo clippy -- --warn clippy::pedantic --deny warnings
+```
 
 ## Find outdated dependencies
 
 ```bash
 cargo outdated --root-deps-only
-````
+```
 
 (This might require [cargo-outdated](https://archlinux.org/packages/extra/x86_64/cargo-outdated/))
 

@@ -78,7 +78,7 @@ impl Filesystem for HelloFS {
         reply: ReplyData,
     ) {
         if ino == 2 {
-            reply.data(&HELLO_TXT_CONTENT.as_bytes()[offset as usize..]);
+            reply.data(&HELLO_TXT_CONTENT.as_bytes()[usize::try_from(offset).unwrap()..]);
         } else {
             reply.error(ENOENT);
         }
@@ -103,9 +103,9 @@ impl Filesystem for HelloFS {
             (2, FileType::RegularFile, "hello.txt"),
         ];
 
-        for (i, entry) in entries.into_iter().enumerate().skip(offset as usize) {
+        for (i, entry) in entries.into_iter().enumerate().skip(usize::try_from(offset).unwrap()) {
             // i + 1 means the index of the next entry
-            if reply.add(entry.0, (i + 1) as i64, entry.1, entry.2) {
+            if reply.add(entry.0, i64::try_from(i + 1).unwrap(), entry.1, entry.2) {
                 break;
             }
         }
