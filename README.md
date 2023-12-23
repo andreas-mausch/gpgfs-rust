@@ -1,6 +1,34 @@
 gpgfs-rust aims to be an alternative for gpgfs, which is written in Python (see below).
 
-Alternatives:
+# Developer instructions
+
+## Build
+
+```bash
+cargo build [--release]
+```
+
+## Run
+
+```bash
+cargo run ./test-mount/
+````
+
+## Format
+
+```bash
+cargo fmt
+````
+
+## Find outdated dependencies
+
+```bash
+cargo outdated --root-deps-only
+````
+
+(This might require [cargo-outdated](https://archlinux.org/packages/extra/x86_64/cargo-outdated/))
+
+# Alternatives
 
 - [https://github.com/jseppanen/gpgfs](gpgfs)
   This is basically a rewrite of gpgfs (which is Python) in Rust.
