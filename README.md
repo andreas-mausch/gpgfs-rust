@@ -23,7 +23,7 @@ cargo fmt
 ## Check
 
 ```bash
-cargo clippy -- --warn clippy::pedantic --deny warnings
+cargo clippy -- --deny clippy::unwrap_used --deny clippy::expect_used --warn clippy::pedantic --deny warnings
 ```
 
 ## Find outdated dependencies

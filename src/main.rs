@@ -1,11 +1,14 @@
-use clap::{crate_version, Arg, ArgAction, Command};
+use std::error::Error;
+use std::ffi::OsStr;
+use std::process::ExitCode;
+use std::time::{Duration, UNIX_EPOCH};
+
+use clap::{Arg, ArgAction, Command, crate_version};
 use fuser::{
-    FileAttr, FileType, Filesystem, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
+    FileAttr, Filesystem, FileType, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
     Request,
 };
-use libc::ENOENT;
-use std::ffi::OsStr;
-use std::time::{Duration, UNIX_EPOCH};
+use libc::{EIO, ENOENT};
 
 const TTL: Duration = Duration::from_secs(1); // 1 second
 
@@ -78,7 +81,11 @@ impl Filesystem for HelloFS {
         reply: ReplyData,
     ) {
         if ino == 2 {
-            reply.data(&HELLO_TXT_CONTENT.as_bytes()[usize::try_from(offset).unwrap()..]);
+            let Ok(size) = usize::try_from(offset) else {
+                reply.error(EIO);
+                return;
+            };
+            reply.data(&HELLO_TXT_CONTENT.as_bytes()[size..]);
         } else {
             reply.error(ENOENT);
         }
@@ -103,9 +110,18 @@ impl Filesystem for HelloFS {
             (2, FileType::RegularFile, "hello.txt"),
         ];
 
-        for (i, entry) in entries.into_iter().enumerate().skip(usize::try_from(offset).unwrap()) {
+        let Ok(size) = usize::try_from(offset) else {
+            reply.error(EIO);
+            return;
+        };
+
+        for (i, entry) in entries.into_iter().enumerate().skip(size) {
             // i + 1 means the index of the next entry
-            if reply.add(entry.0, i64::try_from(i + 1).unwrap(), entry.1, entry.2) {
+            let Ok(next_entry) = i64::try_from(i + 1) else {
+                reply.error(EIO);
+                return;
+            };
+            if reply.add(entry.0, next_entry, entry.1, entry.2) {
                 break;
             }
         }
@@ -113,7 +129,7 @@ impl Filesystem for HelloFS {
     }
 }
 
-fn main() {
+fn main() -> Result<ExitCode, Box<dyn Error>> {
     let matches = Command::new("hello")
         .version(crate_version!())
         .author("Christopher Berner")
@@ -137,7 +153,8 @@ fn main() {
         )
         .get_matches();
     env_logger::init();
-    let mountpoint = matches.get_one::<String>("MOUNT_POINT").unwrap();
+    let mountpoint = matches.get_one::<String>("MOUNT_POINT")
+        .ok_or::<Box<dyn Error>>("No mount point provided".into())?;
     let mut options = vec![MountOption::RW, MountOption::FSName("hello".to_string())];
     if matches.get_flag("auto_unmount") {
         options.push(MountOption::AutoUnmount);
@@ -145,5 +162,6 @@ fn main() {
     if matches.get_flag("allow-root") {
         options.push(MountOption::AllowRoot);
     }
-    fuser::mount2(HelloFS, mountpoint, &options).unwrap();
+    fuser::mount2(HelloFS, mountpoint, &options)?;
+    Ok(ExitCode::SUCCESS)
 }
