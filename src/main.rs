@@ -44,13 +44,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     if args.allow_root {
         options.push(AllowRoot);
     }
-    info!("Options: {:?}", &options);
+    info!("Options: {options:?}");
 
     let mut context = Context::from_protocol(OpenPgp)?;
     let key = context.get_key(args.gpg_key_fingerprint)
-        .map_err(|e| format!("GPG Key fingerprint not found: {}", e))?;
+        .map_err(|e| format!("GPG Key fingerprint not found: {e}"))?;
     let user_id = key.user_ids().next().ok_or("No user id found")?;
-    info!("User ID: {}", user_id);
+    info!("User ID: {user_id}");
 
     fuser::mount2(HelloFS, args.mount_point, &options)?;
     Ok(())
