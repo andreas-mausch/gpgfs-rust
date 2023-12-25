@@ -3,7 +3,7 @@ use std::ffi::OsStr;
 use std::process::ExitCode;
 use std::time::{Duration, UNIX_EPOCH};
 
-use clap::{Arg, ArgAction, Command, crate_version};
+use clap::Parser;
 use env_logger::Env;
 use fuser::{
     FileAttr, Filesystem, FileType, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
@@ -12,6 +12,7 @@ use fuser::{
 use gpgme::{Context, Protocol};
 use libc::{EIO, ENOENT};
 use log::info;
+use MountOption::{AllowRoot, AutoUnmount, FSName, RW};
 use Protocol::OpenPgp;
 
 const TTL: Duration = Duration::from_secs(1); // 1 second
@@ -133,55 +134,45 @@ impl Filesystem for HelloFS {
     }
 }
 
-fn main() -> Result<ExitCode, Box<dyn Error>> {
-    let matches = Command::new("hello")
-        .version(crate_version!())
-        .author("Andreas Mausch")
-        .arg(
-            Arg::new("GPG_KEY_FINGERPRINT")
-                .required(true)
-                .index(1)
-                .help("The GPG key to use for the encryption"),
-        )
-        .arg(
-            Arg::new("MOUNT_POINT")
-                .required(true)
-                .index(2)
-                .help("Act as a client, and mount FUSE at given path"),
-        )
-        .arg(
-            Arg::new("auto_unmount")
-                .long("auto_unmount")
-                .action(ArgAction::SetTrue)
-                .help("Automatically unmount on process exit"),
-        )
-        .arg(
-            Arg::new("allow-root")
-                .long("allow-root")
-                .action(ArgAction::SetTrue)
-                .help("Allow root user to access filesystem"),
-        )
-        .get_matches();
+/// Mount folder with encrypted GPG files via FUSE
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+pub struct Args {
+    /// The GPG key to use for the encryption
+    #[arg(required = true)]
+    gpg_key_fingerprint: String,
 
+    /// Location of the target directory, where the plain files will be shown
+    #[arg(required = true)]
+    mount_point: String,
+
+    /// Automatically unmount on process exit
+    #[arg(short = 'u', long)]
+    auto_unmount: bool,
+
+    /// Allow root user to access filesystem
+    #[arg(short = 'r', long)]
+    allow_root: bool,
+}
+
+fn main() -> Result<ExitCode, Box<dyn Error>> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
-    let gpg_key_fingerprint = matches.get_one::<String>("GPG_KEY_FINGERPRINT")
-        .ok_or::<Box<dyn Error>>("No GPG Key fingerprint provided".into())?;
-    let mountpoint = matches.get_one::<String>("MOUNT_POINT")
-        .ok_or::<Box<dyn Error>>("No mount point provided".into())?;
-    let mut options = vec![MountOption::RW, MountOption::FSName("hello".to_string())];
-    if matches.get_flag("auto_unmount") {
-        options.push(MountOption::AutoUnmount);
+    let args = Args::parse();
+    let mut options = vec![RW, FSName("gpgfs-rust".to_string())];
+    if args.auto_unmount {
+        options.push(AutoUnmount);
     }
-    if matches.get_flag("allow-root") {
-        options.push(MountOption::AllowRoot);
+    if args.allow_root {
+        options.push(AllowRoot);
     }
+    info!("Options: {:?}", &options);
 
     let mut context = Context::from_protocol(OpenPgp)?;
-    let key = context.get_key(gpg_key_fingerprint)?;
+    let key = context.get_key(args.gpg_key_fingerprint)?;
     let user_id = key.user_ids().next().ok_or("No user id found")?;
     info!("User ID: {}", user_id);
 
-    fuser::mount2(HelloFS, mountpoint, &options)?;
+    fuser::mount2(HelloFS, args.mount_point, &options)?;
     Ok(ExitCode::SUCCESS)
 }
