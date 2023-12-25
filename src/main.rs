@@ -1,5 +1,4 @@
 use std::error::Error;
-use std::process::ExitCode;
 
 use clap::Parser;
 use env_logger::Env;
@@ -34,7 +33,7 @@ pub struct Args {
     allow_root: bool,
 }
 
-fn main() -> Result<ExitCode, Box<dyn Error>> {
+fn main() -> Result<(), Box<dyn Error>> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
     let args = Args::parse();
@@ -53,5 +52,5 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
     info!("User ID: {}", user_id);
 
     fuser::mount2(HelloFS, args.mount_point, &options)?;
-    Ok(ExitCode::SUCCESS)
+    Ok(())
 }
