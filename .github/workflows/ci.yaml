@@ -7,6 +7,10 @@ jobs:
     # https://blog.urth.org/2023/03/05/cross-compiling-rust-projects-in-github-actions/
     runs-on: ubuntu-latest
     steps:
+      - uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: libgpgme-dev
+          version: 1.0
       - uses: actions/checkout@v4
       - uses: actions-rs/toolchain@v1
         with:
