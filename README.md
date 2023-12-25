@@ -25,6 +25,8 @@ cargo build [--release]
 cargo run 1111111190ABCDEF1234567890ABCDEF11111111 ./test-mount/
 ```
 
+Replace `1111111190ABCDEF1234567890ABCDEF11111111` with your GPG key fingerprint.
+
 ## Format
 
 ```bash
