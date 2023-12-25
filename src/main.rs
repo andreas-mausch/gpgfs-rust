@@ -47,7 +47,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     info!("Options: {:?}", &options);
 
     let mut context = Context::from_protocol(OpenPgp)?;
-    let key = context.get_key(args.gpg_key_fingerprint)?;
+    let key = context.get_key(args.gpg_key_fingerprint)
+        .map_err(|e| format!("GPG Key fingerprint not found: {}", e))?;
     let user_id = key.user_ids().next().ok_or("No user id found")?;
     info!("User ID: {}", user_id);
 
