@@ -4,11 +4,15 @@ use std::process::ExitCode;
 use std::time::{Duration, UNIX_EPOCH};
 
 use clap::{Arg, ArgAction, Command, crate_version};
+use env_logger::Env;
 use fuser::{
     FileAttr, Filesystem, FileType, MountOption, ReplyAttr, ReplyData, ReplyDirectory, ReplyEntry,
     Request,
 };
+use gpgme::{Context, Protocol};
 use libc::{EIO, ENOENT};
+use log::info;
+use Protocol::OpenPgp;
 
 const TTL: Duration = Duration::from_secs(1); // 1 second
 
@@ -132,11 +136,17 @@ impl Filesystem for HelloFS {
 fn main() -> Result<ExitCode, Box<dyn Error>> {
     let matches = Command::new("hello")
         .version(crate_version!())
-        .author("Christopher Berner")
+        .author("Andreas Mausch")
+        .arg(
+            Arg::new("GPG_KEY_FINGERPRINT")
+                .required(true)
+                .index(1)
+                .help("The GPG key to use for the encryption"),
+        )
         .arg(
             Arg::new("MOUNT_POINT")
                 .required(true)
-                .index(1)
+                .index(2)
                 .help("Act as a client, and mount FUSE at given path"),
         )
         .arg(
@@ -152,7 +162,11 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
                 .help("Allow root user to access filesystem"),
         )
         .get_matches();
-    env_logger::init();
+
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+
+    let gpg_key_fingerprint = matches.get_one::<String>("GPG_KEY_FINGERPRINT")
+        .ok_or::<Box<dyn Error>>("No GPG Key fingerprint provided".into())?;
     let mountpoint = matches.get_one::<String>("MOUNT_POINT")
         .ok_or::<Box<dyn Error>>("No mount point provided".into())?;
     let mut options = vec![MountOption::RW, MountOption::FSName("hello".to_string())];
@@ -162,6 +176,12 @@ fn main() -> Result<ExitCode, Box<dyn Error>> {
     if matches.get_flag("allow-root") {
         options.push(MountOption::AllowRoot);
     }
+
+    let mut context = Context::from_protocol(OpenPgp)?;
+    let key = context.get_key(gpg_key_fingerprint)?;
+    let user_id = key.user_ids().next().ok_or("No user id found")?;
+    info!("User ID: {}", user_id);
+
     fuser::mount2(HelloFS, mountpoint, &options)?;
     Ok(ExitCode::SUCCESS)
 }
