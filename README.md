@@ -1,4 +1,9 @@
-gpgfs-rust aims to be an alternative for gpgfs, which is written in Python (see below).
+gpgfs-rust aims to be an alternative for [gpgfs](https://github.com/jseppanen/gpgfs),
+which is written in Python (see below).
+
+This project also serves as an exercise for me to gain more practice with Rust.
+
+Current status: Not even close to be functional.
 
 # Developer instructions
 
@@ -36,19 +41,19 @@ cargo outdated --root-deps-only
 
 # Alternatives
 
-- [https://github.com/jseppanen/gpgfs](gpgfs)
+- [gpgfs](https://github.com/jseppanen/gpgfs)
   This is basically a rewrite of gpgfs (which is Python) in Rust.
   Note the Merge Request for Python 3 support [here](https://github.com/jseppanen/gpgfs/pull/2)
-- gocryptfs
+- [gocryptfs](https://nuetzlich.net/gocryptfs/)
   very good, fast and clean, but does not support GPG encryption
-  you can use the `-extpass` cli option, to use for example a password from [https://www.passwordstore.org/](pass).
+  you can use the `-extpass` cli option, to use for example a password from [pass](https://www.passwordstore.org/).
   However, it is not really the same as using GPG encryption. You won't be able to decrypt files with just your GPG key,
   you would need the password store as well.
-- gpgtar
+- [gpgtar](https://www.gnupg.org/documentation/manuals/gnupg/gpgtar.html)
   Does not support mounting into the filesystem
-- https://github.com/google/fuse-archive
+- [fuse-archive](https://github.com/google/fuse-archive)
   Does not support GPG
-- VeraCrypt
+- [VeraCrypt](https://veracrypt.fr)
   Does not support GPG
-- [https://github.com/authenticationfailure/bhfs](BHFS - Black Hole Filesytem)
+- [BHFS - Black Hole Filesytem](https://github.com/authenticationfailure/bhfs)
   Needs two tools
