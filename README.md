@@ -1,9 +1,15 @@
 gpgfs-rust aims to be an alternative for [gpgfs](https://github.com/jseppanen/gpgfs),
 which is written in Python (see below).
 
+It mounts a folder with encrypted files using [FUSE](https://en.wikipedia.org/wiki/Filesystem_in_Userspace)
+and transparently en- and decrypts all files automatically using the given GPG key.
+
+Performance is not a priority. I just need a tool to conveniently use GPG encrypted files.
+I personally use it with [GnuCash](https://www.gnucash.org).
+
 This project also serves as an exercise for me to gain more practice with Rust.
 
-Current status: Not even close to be functional.
+**Current status: Not even close to be functional.**
 
 # Developer instructions
 
