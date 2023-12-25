@@ -1,0 +1,17 @@
+name: CI
+on: [ push ]
+jobs:
+  build_and_test:
+    name: Rust Cargo Build
+    # We could try to cross compile like this in the future:
+    # https://blog.urth.org/2023/03/05/cross-compiling-rust-projects-in-github-actions/
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - run: cargo clippy --all-targets --all-features -- --deny clippy::unwrap_used --deny clippy::expect_used --warn clippy::pedantic --deny warnings
+      - run: cargo check
+      - run: cargo test --all
+      - run: cargo build --release --all-features
