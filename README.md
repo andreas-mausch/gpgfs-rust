@@ -65,6 +65,10 @@ cargo outdated --root-deps-only
   you would need the password store as well.
 - [gpgtar](https://www.gnupg.org/documentation/manuals/gnupg/gpgtar.html)
   Does not support mounting into the filesystem
+- [tomb](https://dyne.org/software/tomb/)
+  Stores a whole directory into a single encrypted files.
+  Reads good, but I was scared by this review:
+  [Reddit](https://www.reddit.com/r/netsec/comments/2ms1s0/tomb_file_encryption_on_linux/)
 - [fuse-archive](https://github.com/google/fuse-archive)
   Does not support GPG
 - [VeraCrypt](https://veracrypt.fr)
