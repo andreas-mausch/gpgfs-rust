@@ -33,6 +33,12 @@ Replace `1111111190ABCDEF1234567890ABCDEF11111111` with your GPG key fingerprint
 cargo fmt
 ```
 
+## Test
+
+```bash
+cargo test
+```
+
 ## Check
 
 ```bash
@@ -65,3 +71,7 @@ cargo outdated --root-deps-only
   Does not support GPG
 - [BHFS - Black Hole Filesytem](https://github.com/authenticationfailure/bhfs)
   Needs two tools for encryption and decryption
+
+# Helpful links
+
+- [FUSE filesystems](https://zsiciarz.github.io/24daysofrust/book/vol1/day15.html)
