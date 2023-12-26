@@ -11,7 +11,7 @@ use gpgfs_rust::filesystem::HelloFS;
 #[test]
 fn test_list_directory_entries() -> Result<(), Box<dyn Error>> {
     use temp_dir::TempDir;
-    let directory = TempDir::new().unwrap();
+    let directory = TempDir::new()?;
 
     let plain = directory.path().join("plain");
     create_dir(&plain)?;
@@ -26,8 +26,7 @@ fn test_list_directory_entries() -> Result<(), Box<dyn Error>> {
 }
 
 fn get_files(path: &Path) -> Result<Vec<String>, Box<dyn Error>> {
-    Ok(fs::read_dir(&path)?
-        .map(|entry| Some(entry.ok()?.path().file_name()?.to_str()?.to_string()))
-        .flatten()
+    Ok(fs::read_dir(path)?
+        .filter_map(|entry| Some(entry.ok()?.path().file_name()?.to_str()?.to_string()))
         .collect::<Vec<_>>())
 }
