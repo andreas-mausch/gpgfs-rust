@@ -7,9 +7,9 @@ use log::debug;
 
 const _TTL: Duration = Duration::from_secs(1); // 1 second
 
-pub struct HelloFS;
+pub struct GpgFS;
 
-impl Filesystem for HelloFS {
+impl Filesystem for GpgFS {
     fn lookup(&mut self, _req: &Request, parent: u64, name: &OsStr, reply: ReplyEntry) {
         debug!("lookup(parent: {parent:#x?}, name: {name:?})");
         reply.error(ENOSYS);

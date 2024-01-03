@@ -9,7 +9,7 @@ use log::info;
 use MountOption::{AllowRoot, AutoUnmount, FSName, RW};
 use Protocol::OpenPgp;
 
-use crate::filesystem::HelloFS;
+use crate::filesystem::GpgFS;
 
 mod filesystem;
 
@@ -53,6 +53,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let user_id = key.user_ids().next().ok_or("No user id found")?;
     info!("User ID: {user_id}");
 
-    fuser::mount2(HelloFS, args.mount_point, &options)?;
+    fuser::mount2(GpgFS, args.mount_point, &options)?;
     Ok(())
 }
