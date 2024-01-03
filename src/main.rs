@@ -1,4 +1,5 @@
 use std::error::Error;
+use std::path::PathBuf;
 
 use clap::Parser;
 use env_logger::Env;
@@ -22,7 +23,7 @@ pub struct Args {
 
     /// Location of the target directory, where the plain files will be shown
     #[arg(required = true)]
-    mount_point: String,
+    mount_point: PathBuf,
 
     /// Automatically unmount on process exit
     #[arg(short = 'u', long)]
@@ -44,7 +45,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if args.allow_root {
         options.push(AllowRoot);
     }
-    info!("Options: {options:?}");
+    info!("Mount point: {:?}, Options: {options:?}", args.mount_point);
 
     let mut context = Context::from_protocol(OpenPgp)?;
     let key = context.get_key(args.gpg_key_fingerprint)
