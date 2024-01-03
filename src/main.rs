@@ -21,6 +21,10 @@ pub struct Args {
     #[arg(required = true)]
     gpg_key_fingerprint: String,
 
+    /// Location of the source directory, where the encrypted files are in
+    #[arg(required = true)]
+    encrypted_directory: PathBuf,
+
     /// Location of the target directory, where the plain files will be shown
     #[arg(required = true)]
     mount_point: PathBuf,
@@ -45,7 +49,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     if args.allow_root {
         options.push(AllowRoot);
     }
-    info!("Mount point: {:?}, Options: {options:?}", args.mount_point);
+    info!("Encrypted directory: {:?}, Mount point: {:?}, Options: {options:?}", args.encrypted_directory, args.mount_point);
 
     let mut context = Context::from_protocol(OpenPgp)?;
     let key = context.get_key(args.gpg_key_fingerprint)
