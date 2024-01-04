@@ -20,5 +20,6 @@ libc = "0.2.151"
 log = "0.4.20"
 
 [dev-dependencies]
+assertor = "0.0.2"
 pretty_assertions = "1.4.0"
 temp-dir = "0.1.12"
