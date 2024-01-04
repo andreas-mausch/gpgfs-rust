@@ -1,8 +1,6 @@
-use ErrorKind::Unsupported;
 use std::error::Error;
 use std::fs;
-use std::fs::create_dir;
-use std::io::ErrorKind;
+use std::fs::{create_dir, write};
 use std::path::Path;
 
 use fuser::MountOption::{FSName, RW};
@@ -14,15 +12,19 @@ fn test_list_directory_entries() -> Result<(), Box<dyn Error>> {
     use temp_dir::TempDir;
     let directory = TempDir::new()?;
 
+    let encrypted = directory.path().join("encrypted");
+    create_dir(&encrypted)?;
+    create_dir(encrypted.join("sub-dir"))?;
+    write(encrypted.join("example-file.txt"), "This is some existing content.")?;
+
     let plain = directory.path().join("plain");
     create_dir(&plain)?;
 
     let options = vec![RW, FSName("gpgfs-rust".to_string())];
-    let session = fuser::spawn_mount2(GpgFS, &plain, &options)?;
+    let session = fuser::spawn_mount2(GpgFS { encrypted_directory: encrypted }, &plain, &options)?;
 
     let files = get_files(&plain);
-    assert_eq!(files.unwrap_err().kind(), Unsupported);
-    // assert_eq!(files?, Vec::<String>::new());
+    assert_eq!(files?, vec!["sub-dir", "example-file.txt"]);
 
     session.join();
     Ok(())

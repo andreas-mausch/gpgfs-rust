@@ -1,7 +1,8 @@
 use std::error::Error;
+use std::fs::canonicalize;
 use std::path::PathBuf;
 
-use clap::Parser;
+use clap::{arg, Parser};
 use env_logger::Env;
 use fuser::MountOption;
 use gpgme::{Context, Protocol};
@@ -49,7 +50,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     if args.allow_root {
         options.push(AllowRoot);
     }
-    info!("Encrypted directory: {:?}, Mount point: {:?}, Options: {options:?}", args.encrypted_directory, args.mount_point);
+    let encrypted_directory = canonicalize(args.encrypted_directory)?;
+    let mount_point = canonicalize(args.mount_point)?;
+    info!("Encrypted directory: {encrypted_directory:?}, Mount point: {mount_point:?}, Options: {options:?}");
 
     let mut context = Context::from_protocol(OpenPgp)?;
     let key = context.get_key(args.gpg_key_fingerprint)
@@ -57,6 +60,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     let user_id = key.user_ids().next().ok_or("No user id found")?;
     info!("User ID: {user_id}");
 
-    fuser::mount2(GpgFS, args.mount_point, &options)?;
+    fuser::mount2(GpgFS { encrypted_directory }, mount_point, &options)?;
     Ok(())
 }
