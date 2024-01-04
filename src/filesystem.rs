@@ -68,10 +68,14 @@ const _HELLO_TXT_ATTR: FileAttr = FileAttr {
 impl GpgSimpleFS for GpgFS {
     fn file_list(&self) -> Result<Vec<DirectoryEntry>, std::io::Error> {
         Ok(std::fs::read_dir(&self.encrypted_directory)?
-            .filter_map(|entry| Some(entry.ok()?)).enumerate()
-            .map(|(index, entry)| {
+            .filter_map(Result::ok)
+            .enumerate()
+            .filter_map(|(index, entry)| {
                 debug!("entry found: {index} {:?}, {:?}", entry.ino(), entry.file_name());
-                DirectoryEntry { name: entry.file_name(), kind: to_file_type(entry.file_type().unwrap()) }
+                Some(DirectoryEntry {
+                    name: entry.file_name(),
+                    kind: to_file_type(entry.file_type().ok()?),
+                })
             })
             .collect())
     }
@@ -106,6 +110,13 @@ impl Filesystem for GpgFS {
             return;
         }
 
+        let Ok(offset_usize) = usize::try_from(offset) else
+        {
+            error!("offset conversion (usize) returned an error");
+            reply.error(ENOENT);
+            return;
+        };
+
         let Ok(file_list) = &self.file_list() else
         {
             error!("file_list() returned an error");
@@ -113,9 +124,15 @@ impl Filesystem for GpgFS {
             return;
         };
 
-        file_list.iter().skip(offset as usize).enumerate()
+        file_list.iter()
+            .skip(offset_usize)
+            .enumerate()
             .for_each(|(index, entry)| {
-                if !reply.add(FUSE_ROOT_ID + 1, offset + index as i64 + 1, entry.kind, entry.name.as_os_str()) {
+                let Ok(offset_i64) = i64::try_from(offset_usize + index + 1) else {
+                    error!("offset conversion (i64) returned an error");
+                    return;
+                };
+                if !reply.add(FUSE_ROOT_ID + 1, offset_i64, entry.kind, entry.name.as_os_str()) {
                     error!("reply.add() failed for {index} {:?}", entry.name);
                 }
             });
