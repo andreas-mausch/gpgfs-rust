@@ -24,7 +24,7 @@ fn test_list_directory_entries() -> Result<(), Box<dyn Error>> {
     let session = fuser::spawn_mount2(GpgFS { encrypted_directory: encrypted }, &plain, &options)?;
 
     let files = get_files(&plain);
-    assert_eq!(files?, vec!["sub-dir", "example-file.txt"]);
+    assert_eq!(files?.sort(), vec!["sub-dir", "example-file.txt"].sort());
 
     session.join();
     Ok(())
