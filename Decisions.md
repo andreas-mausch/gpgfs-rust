@@ -33,5 +33,5 @@ There is [spectral](https://github.com/cfrancia/spectral), which hasn't been upd
 And I found [fluent-asserter](https://github.com/dmoka/fluent-asserter)
 and [assertor](https://github.com/google/assertor).
 
-I decided to try assertor. I only has 49 stars on GitHub, but it is hosted by Google and the API looks natural.
+I decided to try assertor. It only has 49 stars on GitHub, but it is hosted by Google and the API looks natural.
 For example it offers `contains_exactly()` and `contains_exactly_in_order()` for vectors.
