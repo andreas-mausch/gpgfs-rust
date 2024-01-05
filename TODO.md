@@ -10,6 +10,7 @@
 - [ ] `cat ./existing-file`
 - [ ] `touch ./new-file`
 - [ ] `echo 'content' > ./new-file`
+- [ ] `mkdir ./new-dir/`
 
 # GPG encrypt files
 
