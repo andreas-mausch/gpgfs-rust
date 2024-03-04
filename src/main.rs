@@ -1,18 +1,20 @@
 use std::error::Error;
+use std::ffi::OsStr;
 use std::fs::canonicalize;
 use std::path::PathBuf;
 
 use clap::{arg, Parser};
 use env_logger::Env;
-use fuser::MountOption;
+use fuse_mt::FuseMT;
 use gpgme::{Context, Protocol};
 use log::info;
-use MountOption::{AllowRoot, AutoUnmount, FSName, RW};
 use Protocol::OpenPgp;
 
 use crate::filesystem::GpgFS;
 
 mod filesystem;
+mod libc_extras;
+mod libc_wrappers;
 
 /// Mount folder with encrypted GPG files via FUSE
 #[derive(Parser, Debug)]
@@ -43,13 +45,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
 
     let args = Args::parse();
-    let mut options = vec![RW, FSName("gpgfs-rust".to_string())];
-    if args.auto_unmount {
-        options.push(AutoUnmount);
-    }
-    if args.allow_root {
-        options.push(AllowRoot);
-    }
+    let options = [OsStr::new("-o"), OsStr::new("fsname=gpgfs-rust")];
+    if args.auto_unmount {}
+    if args.allow_root {}
     let encrypted_directory = canonicalize(args.encrypted_directory)?;
     let mount_point = canonicalize(args.mount_point)?;
     info!("Encrypted directory: {encrypted_directory:?}, Mount point: {mount_point:?}, Options: {options:?}");
@@ -60,6 +58,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let user_id = key.user_ids().next().ok_or("No user id found")?;
     info!("User ID: {user_id}");
 
-    fuser::mount2(GpgFS { encrypted_directory }, mount_point, &options)?;
+    fuse_mt::mount(FuseMT::new(GpgFS { encrypted_directory }, 1),
+                   mount_point,
+                   &options[..])?;
     Ok(())
 }

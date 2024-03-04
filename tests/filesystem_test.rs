@@ -1,10 +1,11 @@
 use std::error::Error;
+use std::ffi::OsStr;
 use std::fs;
 use std::fs::{create_dir, write};
 use std::path::Path;
 
 use assertor::{assert_that, VecAssertion};
-use fuser::MountOption::{FSName, RW};
+use fuse_mt::FuseMT;
 
 use gpgfs_rust::filesystem::GpgFS;
 
@@ -21,13 +22,15 @@ fn test_list_directory_entries() -> Result<(), Box<dyn Error>> {
     let plain = directory.path().join("plain");
     create_dir(&plain)?;
 
-    let options = vec![RW, FSName("gpgfs-rust".to_string())];
-    let session = fuser::spawn_mount2(GpgFS { encrypted_directory: encrypted }, &plain, &options)?;
+    let options = [OsStr::new("fsname=gpgfs-rust")];
+    let session = fuse_mt::spawn_mount(FuseMT::new(GpgFS { encrypted_directory: encrypted }, 1),
+                                       &plain,
+                                       &options[..])?;
 
     assert_that!(get_files(&plain)?)
         .contains_exactly(vec![
             "sub-dir".into(),
-            "example-file.txt".into()
+            "example-file.txt".into(),
         ]);
 
     session.join();
